@@ -60,6 +60,7 @@ fetch('https://raw.githubusercontent.com/harrisono132123/tradeProj/main/tradeDat
   
   
   console.log(winner)
+  console.log(winnerSsl)
   
 
   })
