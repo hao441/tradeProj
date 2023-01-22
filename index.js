@@ -842,35 +842,34 @@ const findOptimalValues = (tradeObjs) => {
       population.sort((a, b) => calculatePerformance(a.sl, a.tp, a.l) - calculatePerformance(b.sl, b.tp, b.l));
       population = population.slice(0, 50);
 
-      // Crossover
-      while (newPopulation.length < 100) {
-        let a = population[Math.floor(Math.random() * population.length)];
-        let b = population[Math.floor(Math.random() * population.length)];
-        let sl = Math.random() < 0.5 ? a.sl : b.sl;
-        let tp = Math.random() < 0.5 ? a.tp : b.tp;
-        let l = Math.random() < 0.5 ? a.l : b.l;
-        newPopulation.push({ sl, tp, l });
-      }
 
-      // Mutation
-      for (let j = 0; j < newPopulation.length; j++) {
-        if (Math.random() < 0.1) {
-          newPopulation[j].sl = Math.random() * 0.2 - 0.1;
-        }
-        if (Math.random() < 0.1) {
-          newPopulation[j].tp = Math.random() * 0.2 - 0.1;
-        }
-        if (Math.random() < 0.1) {
-          newPopulation[j].l = Math.floor(Math.random() * 10) + 1;
-        }
-      }
-
-      population = newPopulation;
-    }
-
-    // Selection
-    population.sort((a, b) => calculatePerformance(a.sl, a.tp, a.l) - calculatePerformance(b.sl, b.tp, b.l));
-    return population[0];
+  // Crossover
+  while (newPopulation.length < 100) {
+    let a = population[Math.floor(Math.random() * population.length)];
+    let b = population[Math.floor(Math.random() * population.length)];
+    let sl = Math.random() < 0.5 ? a.sl : b.sl;
+    let tp = Math.random() < 0.5 ? a.tp : b.tp;
+    let l = Math.random() < 0.5 ? a.l : b.l;
+    newPopulation.push({ sl, tp, l });
   }
-  
 
+  // Mutation
+  for (let j = 0; j < newPopulation.length; j++) {
+    if (Math.random() < 0.1) {
+      newPopulation[j].sl = Math.random() * 0.2 - 0.1;
+    }
+    if (Math.random() < 0.1) {
+      newPopulation[j].tp = Math.random() * 0.2 - 0.1;
+    }
+    if (Math.random() < 0.1) {
+      newPopulation[j].l = Math.floor(Math.random() * 10) + 1;
+    }
+  }
+  population = newPopulation;
+}
+
+// Selection
+population.sort((a, b) => calculatePerformance(a.sl, a.tp, a.l) - calculatePerformance(b.sl, b.tp, b.l));
+  return population[0];
+  }
+}
