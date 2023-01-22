@@ -825,7 +825,7 @@ const findOptimalValues = (tradeObjs) => {
     return perf;
   }
 
-  // Using a more efficient algorithm such as a genetic algorithm
+  // genetic algorithm
   const geneticAlgorithm = () => {
     // Initialize population
     let population = Array(100).fill().map(() => ({
