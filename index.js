@@ -1,6 +1,6 @@
 window.CP.PenTimer.MAX_TIME_IN_LOOP_WO_EXIT = 6000;
 
-const sellObjs = [{
+const tradeObjs = [{
   drawDown: -0.0719,
   profit: -0.0682,
   runUp: 0.1129,
@@ -400,9 +400,7 @@ const sellObjs = [{
   profit: -0.0203,
   runUp: 0.0171,
   type: "SELL"
-}]
-
-const buyObjs = [{
+}, {
   drawDown: -0.0048,
   profit: 0.1512,
   runUp: 0.2687,
@@ -809,109 +807,70 @@ const buyObjs = [{
   type: "BUY"
 }]
 
-let currentBalance = 100;
-const cumulativeBalance = (141*.388);
-
-  let winnerS = 101;
-  let winnerB = 101;
-  let winnerSsl;
-  let winnerStp;
-  let winnerSl;
-  let winnerBsl;
-  let winnerBtp;
-  let winnerBl;
+const findOptimalValues = (tradeObjs) => {
+  let bestSL;
+  let bestTP;
+  let bestL;
+  let bestPerf = Number.MIN_SAFE_INTEGER;
   
-  
-  //variables
-  let sell = {'leverage': 1, 'stopLoss': 0.000, 'takeProfit': 0.000}
-  let buy = {'leverage': 1, 'stopLoss': 0.000, 'takeProfit': 0.000}
-  
-  //calculation function
-  const stepOne = (j) => {
-  return sellObjs[j]['drawDown'] <= sell['stopLoss'] 
-         ? 1 + (sell['stopLoss'] * sell['leverage'])
-         : sellObjs[j]['runUp'] >= sell['takeProfit']
-         ? 1 + (sell['takeProfit']  * sell['leverage'])
-         : 1 + (sellObjs[j]['profit'] * sell['leverage'])
-  }
-    while(sell['leverage'] <= 30) {
-      while(sell['takeProfit'] <= 0.3) {
-        while(sell['stopLoss'] >= -0.3) {
-          for (let i = 0; i < sellObjs.length; i++) {
-            if ((currentBalance *= stepOne(i)) < 0 || (sell['leverage'] * sell['stopLoss']) <= -1) {
-              break;
-            } else {
-              currentBalance += cumulativeBalance;
-              currentBalance *= stepOne(i);
-            }
-          }
-          
-          if (currentBalance > winnerS) {
-           winnerS = currentBalance
-           winnerSsl = sell['stopLoss'];
-           winnerStp = sell['takeProfit'];
-           winnerSl = sell['leverage'];
-          } else {
-           ''
-         }
-          currentBalance = 100
-          sell['stopLoss'] -= 0.001
-        }
-
-      sell['stopLoss'] = 0.000
-      sell['takeProfit'] += 0.001
+  const calculatePerformance = (sl, tp, l) => {
+    let perf = 0;
+    for (let trade of tradeObjs) {
+      if (trade.type === "SELL") {
+        perf += trade.drawDown <= sl ? 1 + (sl * l) : trade.runUp >= tp ? 1 + (tp * l) : 1;
+      } else {
+        perf += trade.drawDown <= sl ? 1 + (tp * l) : trade.runUp >= tp ? 1 + (sl * l) : 1;
       }
-      sell['takeProfit'] = 0.000
-      sell['leverage'] += 1
     }
-  
-  
-  console.log("winnerS: " + winnerS)
-  console.log('winner Ssl: ' + winnerSsl)
-  console.log('winner Stp: ' + winnerStp)
-  console.log('winner Sl: ' + winnerSl)
-  
-
-const stepTwo = (j) => {
-  return buyObjs[j]['drawDown'] <= buy['stopLoss'] 
-         ? 1 + (buy['stopLoss'] * buy['leverage'])
-         : buyObjs[j]['runUp'] >= buy['takeProfit']
-         ? 1 + (buy['takeProfit']  * buy['leverage'])
-         : 1 + (buyObjs[j]['profit'] * buy['leverage'])
+    return perf;
   }
-    while(buy['leverage'] <= 30) {
-      while(buy['takeProfit'] <= 0.3) {
-        while(buy['stopLoss'] >= -0.3) {
-          for (let i = 0; i < buyObjs.length; i++) {
-            if ((currentBalance *= stepTwo(i)) < 0 || (buy['leverage'] * buy['stopLoss']) <= -1) {
-              break;
-            } else {
-              currentBalance += cumulativeBalance;
-              currentBalance *= stepTwo(i);
-            }
-          }
-          if (currentBalance > winnerB) {
-           winnerB = currentBalance
-           winnerBsl = buy['stopLoss'];
-           winnerBtp = buy['takeProfit'];
-           winnerBl = buy['leverage'];
-          } else {
-           ''
-         }
-          currentBalance = 100
-          buy['stopLoss'] -= 0.001
-        }
 
-      buy['stopLoss'] = 0.000
-      buy['takeProfit'] += 0.001
+  // Using a more efficient algorithm such as a genetic algorithm
+  const geneticAlgorithm = () => {
+    // Initialize population
+    let population = Array(100).fill().map(() => ({
+      sl: Math.random() * 0.2 - 0.1,
+      tp: Math.random() * 0.2 - 0.1,
+      l: Math.floor(Math.random() * 10) + 1
+    }));
+
+    // Iterate through generations
+    for (let i = 0; i < 100; i++) {
+      let newPopulation = [];
+
+      // Selection
+      population.sort((a, b) => calculatePerformance(a.sl, a.tp, a.l) - calculatePerformance(b.sl, b.tp, b.l));
+      population = population.slice(0, 50);
+
+      // Crossover
+      while (newPopulation.length < 100) {
+        let a = population[Math.floor(Math.random() * population.length)];
+        let b = population[Math.floor(Math.random() * population.length)];
+        let sl = Math.random() < 0.5 ? a.sl : b.sl;
+        let tp = Math.random() < 0.5 ? a.tp : b.tp;
+        let l = Math.random() < 0.5 ? a.l : b.l;
+        newPopulation.push({ sl, tp, l });
       }
-      buy['takeProfit'] = 0.000
-      buy['leverage'] += 1
+
+      // Mutation
+      for (let j = 0; j < newPopulation.length; j++) {
+        if (Math.random() < 0.1) {
+          newPopulation[j].sl = Math.random() * 0.2 - 0.1;
+        }
+        if (Math.random() < 0.1) {
+          newPopulation[j].tp = Math.random() * 0.2 - 0.1;
+        }
+        if (Math.random() < 0.1) {
+          newPopulation[j].l = Math.floor(Math.random() * 10) + 1;
+        }
+      }
+
+      population = newPopulation;
     }
 
-  console.log("winnerB: " + winnerB)
-  console.log('winner Bsl: ' + winnerBsl)
-  console.log('winner Btp: ' + winnerBtp)
-  console.log('winner Bl: ' + winnerBl)
+    // Selection
+    population.sort((a, b) => calculatePerformance(a.sl, a.tp, a.l) - calculatePerformance(b.sl, b.tp, b.l));
+    return population[0];
+  }
+  
 
-console.log(winnerB + winnerS)
